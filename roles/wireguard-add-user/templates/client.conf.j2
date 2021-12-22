@@ -1,0 +1,10 @@
+[Interface]
+PrivateKey = {{ pv_key }}
+Address = {{ wireguard_client_ip }}/32
+DNS = {{ wireguard_dns_servers }}
+
+[Peer]
+PublicKey = {{  wireguard_server_pb_key }}
+PresharedKey = {{ psk }}
+AllowedIPs = {{ wireguard_allowed_ips }}
+Endpoint = {{ wireguard_server_public_address }}:{{ wireguard_port }}

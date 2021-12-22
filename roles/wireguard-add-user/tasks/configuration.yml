@@ -1,0 +1,41 @@
+---    
+- name: check User existence
+  stat:
+    path: "{{ wireguard_activeUser_lockfile_path }}/{{ item }}.lock"
+  register: ifUser
+  with_items:
+    - "{{ users }}"
+
+- name: create key and configs for non-existence users
+  include_tasks: peer-key-config-generator.yml
+  loop: "{{ ifUser.results }}"
+  when: item.stat.exists == false
+
+#- name: Server - Config generator
+#  become: yes
+#  template:
+#    src: server.conf.j2
+#    dest: "/etc/wireguard/{{ wireguard_interface }}.conf"
+#    mode: 0600
+#  notify: restart wireguard
+
+- name: Generate Server Interface Config
+  become: no
+  template:
+    src: server-interface.conf.j2
+    dest: "{{ wireguard_local_config_path }}/serverConfigs/_{{ wireguard_interface }}.conf"
+  delegate_to: localhost
+
+- name: Combine peer parts and server part to generate server config file
+  assemble:
+    src: "{{ wireguard_local_config_path }}/serverConfigs"
+    dest: "/etc/wireguard/{{ wireguard_interface }}.conf"
+    mode: 0600
+    remote_src: no
+  notify: restart wireguard   
+
+- name: Fetch Server Config File
+  fetch:
+    src: "/etc/wireguard/{{ wireguard_interface }}.conf"
+    dest: "{{ wireguard_local_config_path }}/configs/{{ wireguard_interface }}.conf" 
+    flat: yes     

@@ -1,0 +1,7 @@
+- block:
+  - name: Generate peer part of server config file
+    become: no
+    template:
+      src: peer.conf.j2
+      dest: "{{ wireguard_local_config_path }}/serverConfigs/{{ user }}.conf"
+    delegate_to: localhost

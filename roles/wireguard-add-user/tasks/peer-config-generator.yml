@@ -1,0 +1,19 @@
+---
+- name: Ask an IP from IP mangement server
+  become: no
+  uri:
+    url: "http://{{ ip_management_server }}/get-ip/{{ user }}"
+  register: result
+  #delegate_to: localhost
+
+- set_fact:
+    wireguard_client_ip: "{{ result.json.AssignedIP }}"
+
+- name: Generate peer(client) part of server config file
+  include_tasks: server-peer-config-generator.yml
+  
+- name: Client - Config generator
+  template:
+    src: client.conf.j2
+    dest: "{{ wireguard_config_path }}/{{ user }}.conf"
+    mode: 0666

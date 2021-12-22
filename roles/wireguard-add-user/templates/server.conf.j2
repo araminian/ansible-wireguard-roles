@@ -1,0 +1,13 @@
+[Interface]
+Address = {{ wireguard_server_ip }}
+ListenPort = {{ wireguard_port }}
+PrivateKey = {{ wireguard_server_pv_key }}
+SaveConfig = false
+
+{% for u in users %}
+[Peer]
+# {{ u }}
+PublicKey = {{ lookup('file', wireguard_local_config_path + '/pki/' + '/public/' + u) }}
+PresharedKey = {{ lookup('file', wireguard_local_config_path + '/pki/' + '/preshared/' + u) }}
+AllowedIPs = {{ wireguard_network_ipv4 }}
+{% endfor %}

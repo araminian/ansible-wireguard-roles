@@ -1,0 +1,5 @@
+[Peer]
+# {{ user }}
+PublicKey = {{ lookup('file', wireguard_local_config_path + '/pki/' + '/public/' + user) }}
+PresharedKey = {{ lookup('file', wireguard_local_config_path + '/pki/' + '/preshared/' + user) }}
+AllowedIPs = {{ wireguard_client_ip }}/32

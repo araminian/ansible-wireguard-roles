@@ -1,0 +1,74 @@
+- block:
+  - set_fact:
+      user: "{{ item.item }}"
+
+  - name: Generate Private Key
+    command: wg genkey
+    register: private_key
+
+  - name: Save Private Key
+    copy:
+      dest: "{{ wireguard_pki_path }}/private/{{ user }}"
+      content: "{{ private_key.stdout }}"
+      mode: 0600
+    no_log: false
+  
+  - name: fetch Private key to local controller
+    fetch:
+      src: "{{ wireguard_pki_path }}/private/{{ user }}"
+      dest: "{{ wireguard_local_config_path }}/pki/private/{{ user }}"
+      flat: yes
+
+  - name: Generate PSK
+    command: wg genpsk
+    register: psk
+
+  - name: Save PSK
+    copy:
+      dest: "{{ wireguard_pki_path }}/preshared/{{ user }}"
+      content: "{{ psk.stdout }}"
+      mode: 0600
+    no_log: false
+
+  - name: fetch PSK to local controller
+    fetch:
+      src: "{{ wireguard_pki_path }}/preshared/{{ user }}"
+      dest: "{{ wireguard_local_config_path }}/pki/preshared/{{ user }}" 
+      flat: yes   
+
+  - name: Generate Public Key
+    shell: echo "{{ private_key.stdout }}" | wg pubkey 
+    register: public_key
+    
+  - name: Save Public Key
+    copy:
+      dest: "{{ wireguard_pki_path }}/public/{{ user }}"
+      content: "{{ public_key.stdout }}"
+      mode: 0600
+    no_log: false
+  
+  - name: fetch Public Key to local controller
+    fetch:
+      src: "{{ wireguard_pki_path }}/public/{{ user }}"
+      dest: "{{ wireguard_local_config_path }}/pki/public/{{ user }}"
+      flat: yes 
+
+  - name: Create Lockfile
+    file:
+      dest: "{{ wireguard_activeUser_lockfile_path }}{{ user }}.lock"
+      state: touch
+
+  - set_fact:
+      pv_key: "{{ private_key.stdout }}"
+      pb_key: "{{ public_key.stdout }}"
+      psk: "{{ psk.stdout }}"
+
+  - name: Create Config file
+    include_tasks: peer-config-generator.yml
+  
+  - name: fetch Configs to local controller
+    fetch:
+      src: "{{ wireguard_config_path }}/{{ user }}.conf"
+      dest: "{{ wireguard_local_config_path }}/configs/{{ user }}.conf"
+      flat: yes
+  become: true

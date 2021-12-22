@@ -1,0 +1,13 @@
+- name: Ensure the required directories exist
+  file:
+    dest: "{{ item }}"
+    state: directory
+    recurse: true
+  with_items:
+    - "{{ wireguard_config_path }}"
+    - "{{ wireguard_config_path }}/Clients"
+    - "{{ wireguard_pki_path }}/preshared"
+    - "{{ wireguard_pki_path }}/private"
+    - "{{ wireguard_pki_path }}/public"
+    - "{{ wireguard_activeUser_lockfile_path }}"
+    - "{{ wireguard_deletedUser_lockfile_path }}"
